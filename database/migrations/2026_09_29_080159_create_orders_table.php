@@ -6,30 +6,36 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
-{
-    Schema::create('orders', function (Blueprint $table) {
-        $table->id();
-        $table->foreignId('user_id')->constrained()->onDelete('cascade');
-        $table->string('order_number')->unique(); // ID Transaksi Unik (contoh: TRX-12345)
-        $table->integer('total_price');
-        $table->string('status')->default('pending'); // pending, paid, cancelled, failed
-        $table->string('snap_token')->nullable(); // Token untuk pop-up Midtrans
-        $table->text('address')->nullable();
-        $table->string('phone')->nullable();
-        $table->timestamps();
-    });
-}
+    {
+        Schema::create('orders', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('address_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('promo_id')->nullable()->constrained()->onDelete('set null');
+            $table->string('invoice_no', 30)->unique();
+            $table->enum('fulfillment_type', ['pickup', 'delivery']);
+            $table->decimal('subtotal', 12, 2);
+            $table->decimal('discount', 12, 2)->default(0);
+            $table->decimal('shipping_fee', 12, 2)->default(0);
+            $table->decimal('total', 12, 2);
+            $table->enum('status', [
+                'pending',
+                'paid',
+                'processing',
+                'ready',
+                'shipped',
+                'completed',
+                'cancelled'
+            ])->default('pending');
+            $table->dateTime('scheduled_at')->nullable(); // Tanggal/Jam pickup atau delivery
+            $table->text('note')->nullable();
+            $table->timestamps();
+        });
+    }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('orders');
     }
 };
-

@@ -11,17 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-    Schema::create('users', function (Blueprint $table) {
-        $table->id();
-        $table->string('name');
-        $table->string('email')->unique();
-        $table->string('role')->default('customer'); // customer / admin
-        $table->timestamp('email_verified_at')->nullable();
-        $table->string('password');
-        $table->rememberToken();
-        $table->timestamps();
-    });
+        Schema::create('users', function (Blueprint $table) {
+            $table->id();
+            $table->string('name', 100);
+            $table->string('email', 150)->unique();
+            $table->string('phone', 20)->nullable(); // Menambahkan nomor telepon pelanggan
+            $table->timestamp('email_verified_at')->nullable();
+            $table->string('password');
+            $table->enum('role', ['customer', 'admin'])->default('customer'); // Role dibatasi customer/admin
+            $table->boolean('is_active')->default(true); // Status aktif/nonaktif akun
+            $table->rememberToken();
+            $table->timestamps();
+        });
 
+        // Tetap pertahankan tabel bawaan Laravel di bawah ini
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
             $table->string('token');

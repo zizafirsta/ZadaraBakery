@@ -8,10 +8,23 @@
     <div class="py-12 max-w-xl mx-auto px-4 text-center">
         <div class="bg-white rounded-lg shadow-md p-8">
             <h3 class="text-xl font-bold text-gray-800 mb-2">Pesanan Dibuat!</h3>
-            <p class="text-gray-600 mb-4">No. Transaksi: <span class="font-semibold">{{ $order->order_number }}</span></p>
+            <p class="text-gray-600 mb-4">
+                No. Invoice: <span class="font-semibold">{{ $order->invoice_no }}</span>
+            </p>
+
+            <div class="bg-gray-50 rounded p-4 mb-6 text-left text-sm text-gray-600">
+                <p><strong>Tipe Layanan:</strong> {{ ucfirst($order->fulfillment_type) }}</p>
+                @if($order->address)
+                    <p><strong>Alamat Pengiriman:</strong> {{ $order->address->street }}, {{ $order->address->city }}</p>
+                @endif
+                <p><strong>Subtotal:</strong> Rp {{ number_format($order->subtotal, 0, ',', '.') }}</p>
+                @if($order->shipping_fee > 0)
+                    <p><strong>Ongkos Kirim:</strong> Rp {{ number_format($order->shipping_fee, 0, ',', '.') }}</p>
+                @endif
+            </div>
 
             <p class="text-2xl font-extrabold text-amber-700 mb-6">
-                Total: Rp {{ number_format($order->total_price, 0, ',', '.') }}
+                Total: Rp {{ number_format($order->total, 0, ',', '.') }}
             </p>
 
             <button id="pay-button" class="bg-amber-600 text-white px-8 py-3 rounded-md font-bold text-lg hover:bg-amber-700 transition">
@@ -21,11 +34,12 @@
     </div>
 
     <!-- Script Snap Midtrans -->
-    <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ env('MIDTRANS_CLIENT_KEY') }}"></script>
+    <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ config('services.midtrans.client_key', env('MIDTRANS_CLIENT_KEY')) }}"></script>
     <script type="text/javascript">
         var payButton = document.getElementById('pay-button');
         payButton.addEventListener('click', function () {
-            snap.pay('{{ $order->snap_token }}', {
+            // Mengambil token Midtrans dari relasi payment
+            window.snap.pay('{{ $order->payment?->gateway_ref }}', {
                 onSuccess: function(result){
                     alert("Pembayaran Berhasil!");
                     window.location.href = "{{ route('shop.index') }}";
